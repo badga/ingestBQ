@@ -1,0 +1,24 @@
+name: 'Set Environment Variables'
+description: 'Set environment variables based on the modified branch'
+runs:
+  using: "composite"
+  steps:
+    # Set variables depending on the modified branch
+    - name: Set environment variables DEV
+      run: |
+        if [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
+          echo "BUCKET-INGEST=aligator" >> $GITHUB_ENV
+          echo "BUCKET-PARAM=aligator-param" >> $GITHUB_ENV 
+          echo "BUCKET-WEB=aligator-web" >> $GITHUB_ENV 
+          echo "GCP_PROJECT=ah584312" >> $GITHUB_ENV
+          echo "SERVICE_ACCOUNT_CF_EMAIL=ah584312@appspot.gserviceaccount.com" >> $GITHUB_ENV
+        fi
+        exit 0
+      shell: bash
+    - name: Set environment variables PROD
+      run: |
+        if [[ $GITHUB_REF == 'refs/heads/prod' ]]; then
+          echo "BUCKET=gs:waitingforit//" >> $GITHUB_ENV
+        fi
+        exit 0
+      shell: bash
