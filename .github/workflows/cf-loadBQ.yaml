@@ -42,4 +42,4 @@ jobs:
           max_instances: 5
           service_account_email: ah584312@appspot.gserviceaccount.com
           event_trigger_type: google.pubsub.topic.publish
-          event_trigger_resource: projects/{{ env.GCP_PROJECT }}/topics/load_bq
+          event_trigger_resource: projects/ah584312/topics/load_bq
