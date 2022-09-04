@@ -71,6 +71,7 @@ type GCSEvent struct {
 // the message send to the next PubSub topic
 type NextsMessages struct {
 	GcsRef                 bigquery.GCSReference           `json:"gcs_ref"`
+	Config                 Config                          `json:"config"`
 	DatasetID              string                          `json:"dataset_id"`
 	TableID                string                          `json:"table_id"`
 	TableCreateDisposition bigquery.TableCreateDisposition `json:"Table_create_disposition"`

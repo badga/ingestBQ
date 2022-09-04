@@ -21,7 +21,6 @@ package aligator
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 
@@ -32,13 +31,25 @@ import (
 var bqClient *bigquery.Client
 var err error
 
-var projectID = os.Getenv("GCP_PROJECT")
+var config Config
 
-var res Res
-var req Req
+var projectID string
+
+var message Message
 
 type PubSubMessage struct {
 	Data []byte `json:"data"`
+}
+
+// the message send to the next PubSub topic
+type Message struct {
+	GcsRef                 bigquery.GCSReference           `json:"gcs_ref"`
+	Config                 Config                          `json:"config"`
+	DatasetID              string                          `json:"dataset_id"`
+	TableID                string                          `json:"table_id"`
+	TableCreateDisposition bigquery.TableCreateDisposition `json:"Table_create_disposition"`
+	TableWriteDisposition  bigquery.TableWriteDisposition  `json:"Table_write_disposition"`
+	PubSubTopic            string                          `json:"pub_sub_topic"`
 }
 
 // config of the flow
@@ -56,61 +67,43 @@ type Config struct {
 	PubSubTopic      string                         `json:"pubsub_topic"`
 }
 
-type Res struct {
-	status string
-	code   int64
-}
-
 func init() {
 
+	projectID = os.Getenv("GCP_PROJECT")
 	bqClient, err = bigquery.NewClient(context.Background(), projectID)
 	if err != nil {
 		log.Errorf("error create client bigquery.NewClient: ", err)
-		fmt.Errorf("error create client bigquery.NewClient:  %v", err)
-		return
 	}
-
 }
-
-var config Config
 
 func LoadBQ(ctx context.Context, m PubSubMessage) error {
 
-	err = json.Unmarshal(m.Data, &config)
+	err = json.Unmarshal(m.Data, &message)
 	if err != nil {
 		log.Errorf("Error Json request format !", err)
 	}
 
-	loader := bqClient.Dataset(strings.Split(config.TableName, ".")[0]).Table(strings.Split(config.TableName, ".")[1]).LoaderFrom(&req.GcsRef)
+	loader := bqClient.Dataset(message.Config.TableName).Table(strings.Split(message.Config.TableName, ".")[1]).LoaderFrom(&message.GcsRef)
 	loader.CreateDisposition = bigquery.CreateIfNeeded
 	loader.WriteDisposition = config.WriteDisposition
-	loader.JobID = 
+	loader.JobID = "loadBQ_" + message.Config.TableName
 	loader.AddJobIDSuffix = true
 	job, err := loader.Run(context.Background())
 	if err != nil {
 		log.Errorf("destination file is empty ")
-		fmt.Fprint(w, "destination file is empty !")
-		return
+		return err
 	}
 	status, err := job.Wait(context.Background())
 	if err != nil {
 		log.Errorf("destination file is empty ")
-		fmt.Fprint(w, "destination file is empty !")
-		return
+		return err
 	}
 
 	if status.Err() != nil {
 		log.Errorf("job completed with error: %v", status.Err())
-		fmt.Fprint(w, "destination file is empty !")
-		return
+		return err
 	}
 
-	resp := Res{"OK", 200}
-	js, err := json.Marshal(resp)
-
-	w.Header().Set("Content-Type", "application/json")
-	//w.WriteHeader(http.StatusOK)
-	w.Write(js)
-	return
+	return nil
 
 }
