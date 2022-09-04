@@ -25,6 +25,8 @@ jobs:
         uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: ${{ secrets.GCP_CICD_CREDENTIALS_AH584312 }}
+      - uses: ./.github/actions/set-environment-variables
+        name: SetEnv
       - id: deploy-dev
         if: endsWith(github.ref, '/dev')
         uses: google-github-actions/deploy-cloud-functions@main
