@@ -34,8 +34,8 @@ jobs:
           entry_point: Aligator
           region: europe-west1
           memory_mb: 256
-          source_dir: CloudFunction/aligator/microservices/main/src/
-          env_vars_file: CloudFunction/aligator/microservices/main/envs/env_vars_dev.yaml
+          source_dir: CloudFunction/aligator/microservices/ingest-files/src/
+          env_vars_file: CloudFunction/aligator/microservices/ingest-files/envs/env_vars_dev.yaml
           ingress_settings: ALLOW_ALL
           timeout: 540
           max_instances: 5
